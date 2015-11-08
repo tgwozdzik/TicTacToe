@@ -1,4 +1,5 @@
 import cv2
+import cv2.cv as cv
 import numpy as np
 from skimage import data, io, filters, morphology, feature, measure
 from matplotlib import pyplot as plt
@@ -6,7 +7,7 @@ from math import hypot
 
 def getEdges(image):
     gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray,100,200,apertureSize = 3)
+    edges = cv2.Canny(gray,50,150,apertureSize = 3)
     edges = morphology.dilation(edges,morphology.disk(4))
     return edges
 
@@ -30,7 +31,7 @@ def getEndPointsOfLines(lines):
     points = []
     minDistance = 50
     if (lines is not None):
-        print(len(lines))
+        print("Number of lines: ", len(lines))
         if (len(lines)>=4)and(len(lines)<30):
             for line in lines:
                 rho,theta = line[0],line[1]
@@ -96,6 +97,7 @@ while True:
         centroids = [getCentroid(contour[0]) for contour in contours]
 
     lines = cv2.HoughLines(edges,1,10*np.pi/180,250)
+    circles = cv2.HoughCircles(cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY), cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
     if (lines is not None):
         lines = lines[0]
         points = getEndPointsOfLines(lines)
@@ -112,7 +114,18 @@ while True:
         # draw intersectionPoints
         for i in intersectionPoints:
             cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
-
+        
+        #draw detected circles
+        if (circles is not None):
+            circles = circles[0]
+            print("Number of circles: ", len(circles))
+            circles = np.uint16(np.around(circles))
+            for i in circles:
+                # draw the outer circle
+                cv2.circle(frame,(i[0],i[1]),i[2],(0,255,0),2)
+                # draw the center of the circle
+                cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
+        
         cv2.imshow('Video',frame)
             
     if cv2.waitKey(1) & 0xFF == ord('q'):
