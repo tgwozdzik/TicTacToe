@@ -9,7 +9,7 @@ def getEdges(image):
     gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray,50,150,apertureSize = 3)
     edges = morphology.dilation(edges,morphology.disk(4))
-    return edges
+    return gray, edges
 
 def getLineIntersectionPoint(line1, line2):
     xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
@@ -88,7 +88,7 @@ video_capture = cv2.VideoCapture(0)
 
 while True:
     ret, frame = video_capture.read()
-    edges = getEdges(frame)
+    gray, edges = getEdges(frame)
     cv2.imshow('Edges', edges)
 
     contours = getContours(edges,100)
@@ -97,7 +97,7 @@ while True:
         centroids = [getCentroid(contour[0]) for contour in contours]
 
     lines = cv2.HoughLines(edges,1,10*np.pi/180,250)
-    circles = cv2.HoughCircles(cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY), cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
+    circles = cv2.HoughCircles(gray, cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
     if (lines is not None):
         lines = lines[0]
         points = getEndPointsOfLines(lines)
