@@ -6,7 +6,7 @@ from math import hypot
 
 def getEdges(image):
     gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray,50,150,apertureSize = 3)
+    edges = cv2.Canny(gray,100,200,apertureSize = 3)
     edges = morphology.dilation(edges,morphology.disk(4))
     return edges
 
@@ -33,7 +33,7 @@ def getEndPointsOfLines(lines):
         print(len(lines))
         if (len(lines)>=4)and(len(lines)<30):
             for line in lines:
-                rho,theta = line[0,0],line[0,1]
+                rho,theta = line[0],line[1]
                 a = np.cos(theta)
                 b = np.sin(theta)
                 x0 = a*rho
@@ -71,7 +71,7 @@ def getIntersectionPoints(points):
     return intersectionPoints
 
 def getContours(blackAndWhiteImage,limitContourLength):
-    im2, contours, hierarchy = cv2.findContours(edges,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(edges,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     contours = [contour for contour in contours if len(contour)>limitContourLength]
     return contours
 
@@ -88,7 +88,7 @@ video_capture = cv2.VideoCapture(0)
 while True:
     ret, frame = video_capture.read()
     edges = getEdges(frame)
-    cv2.imshow('Edges',edges)
+    cv2.imshow('Edges', edges)
 
     contours = getContours(edges,100)
 
@@ -96,22 +96,25 @@ while True:
         centroids = [getCentroid(contour[0]) for contour in contours]
 
     lines = cv2.HoughLines(edges,1,10*np.pi/180,250)
-    points = getEndPointsOfLines(lines)
+    if (lines is not None):
+        lines = lines[0]
+        points = getEndPointsOfLines(lines)
 
-    # draw contours
-    cv2.drawContours(frame, contours, -1, (0,255,0), 2)
+        # draw contours
+        cv2.drawContours(frame, contours, -1, (0,255,0), 2)
 
-    # draw lines
-    for i in points:
-        cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),2)
+        # draw lines
+        for i in points:
+            cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),2)
 
-    intersectionPoints = getIntersectionPoints(points)
+        intersectionPoints = getIntersectionPoints(points)
 
-    # draw intersectionPoints
-    for i in intersectionPoints:
-         cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
+        # draw intersectionPoints
+        for i in intersectionPoints:
+            cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
 
-    cv2.imshow('Video',frame)
+        cv2.imshow('Video',frame)
+            
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
