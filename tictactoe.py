@@ -1,4 +1,5 @@
 import cv2
+import cv2.cv as cv
 import numpy as np
 from skimage import data, io, filters, morphology, feature, measure
 from matplotlib import pyplot as plt
@@ -8,7 +9,7 @@ def getEdges(image):
     gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray,50,150,apertureSize = 3)
     edges = morphology.dilation(edges,morphology.disk(4))
-    return edges
+    return gray, edges
 
 def getLineIntersectionPoint(line1, line2):
     xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
@@ -30,10 +31,10 @@ def getEndPointsOfLines(lines):
     points = []
     minDistance = 50
     if (lines is not None):
-        print(len(lines))
+        print("Number of lines: ", len(lines))
         if (len(lines)>=4)and(len(lines)<30):
             for line in lines:
-                rho,theta = line[0,0],line[0,1]
+                rho,theta = line[0],line[1]
                 a = np.cos(theta)
                 b = np.sin(theta)
                 x0 = a*rho
@@ -71,7 +72,7 @@ def getIntersectionPoints(points):
     return intersectionPoints
 
 def getContours(blackAndWhiteImage,limitContourLength):
-    im2, contours, hierarchy = cv2.findContours(edges,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(edges,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     contours = [contour for contour in contours if len(contour)>limitContourLength]
     return contours
 
@@ -87,8 +88,8 @@ video_capture = cv2.VideoCapture(0)
 
 while True:
     ret, frame = video_capture.read()
-    edges = getEdges(frame)
-    cv2.imshow('Edges',edges)
+    gray, edges = getEdges(frame)
+    cv2.imshow('Edges', edges)
 
     contours = getContours(edges,100)
 
@@ -96,6 +97,9 @@ while True:
         centroids = [getCentroid(contour[0]) for contour in contours]
 
     lines = cv2.HoughLines(edges,1,10*np.pi/180,250)
+    circles = cv2.HoughCircles(gray, cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
+    if (lines is not None):
+        lines = lines[0]
     points = getEndPointsOfLines(lines)
 
     # draw contours
@@ -108,10 +112,23 @@ while True:
     intersectionPoints = getIntersectionPoints(points)
 
     # draw intersectionPoints
+    print("Number of intersections: ", len(intersectionPoints))
     for i in intersectionPoints:
-         cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
-
+        cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
+        
+    #draw detected circles
+    if (circles is not None):
+        circles = circles[0]
+        print("Number of circles: ", len(circles))
+        circles = np.uint16(np.around(circles))
+        for i in circles:
+            # draw the outer circle
+            cv2.circle(frame,(i[0],i[1]),i[2],(0,255,0),2)
+            # draw the center of the circle
+            cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
+        
     cv2.imshow('Video',frame)
+            
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
