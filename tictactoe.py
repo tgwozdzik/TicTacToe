@@ -100,33 +100,34 @@ while True:
     circles = cv2.HoughCircles(gray, cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
     if (lines is not None):
         lines = lines[0]
-        points = getEndPointsOfLines(lines)
+    points = getEndPointsOfLines(lines)
 
-        # draw contours
-        cv2.drawContours(frame, contours, -1, (0,255,0), 2)
+    # draw contours
+    cv2.drawContours(frame, contours, -1, (0,255,0), 2)
 
-        # draw lines
-        for i in points:
-            cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),2)
+    # draw lines
+    for i in points:
+        cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),2)
 
-        intersectionPoints = getIntersectionPoints(points)
+    intersectionPoints = getIntersectionPoints(points)
 
-        # draw intersectionPoints
-        for i in intersectionPoints:
-            cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
+    # draw intersectionPoints
+    print("Number of intersections: ", len(intersectionPoints))
+    for i in intersectionPoints:
+        cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
         
-        #draw detected circles
-        if (circles is not None):
-            circles = circles[0]
-            print("Number of circles: ", len(circles))
-            circles = np.uint16(np.around(circles))
-            for i in circles:
-                # draw the outer circle
-                cv2.circle(frame,(i[0],i[1]),i[2],(0,255,0),2)
-                # draw the center of the circle
-                cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
+    #draw detected circles
+    if (circles is not None):
+        circles = circles[0]
+        print("Number of circles: ", len(circles))
+        circles = np.uint16(np.around(circles))
+        for i in circles:
+            # draw the outer circle
+            cv2.circle(frame,(i[0],i[1]),i[2],(0,255,0),2)
+            # draw the center of the circle
+            cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
         
-        cv2.imshow('Video',frame)
+    cv2.imshow('Video',frame)
             
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
