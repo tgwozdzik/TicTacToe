@@ -126,24 +126,16 @@ def checkGameState(intersectionPoints, circles, gameState):
     point3 = intersectionPoints[2]
     point4 = intersectionPoints[3]
     
-    if(point1[0] > point2[0]):
-        temp = point1
-        point1 = point2
-        point2 = temp
-    
-        temp = point3
-        point3 = point4
-        point4 = temp
-    
-    if(point1[1] < point3[1]):
-        temp = point1
-        point1 = point3
-        point3 = temp
+    max_x = max([point1[0], point2[0],point3[0], point4[0]])
+    min_x = min([point1[0], point2[0],point3[0], point4[0]])
         
-        temp = point2
-        point2 = point4
-        point4 = temp
-    
+    max_y = max([point1[1], point2[1],point3[1], point4[1]])
+    min_y = min([point1[1], point2[1],point3[1], point4[1]])
+                
+    point1 = [min_x, max_y]
+    point2 = [max_x, max_y]
+    point3 = [min_x, min_y]
+    point4 = [max_x, min_y]
     #print(point1, point2, point3, point4)
     
     positionX=-1
@@ -201,26 +193,28 @@ while True:
         centroids = [getCentroid(contour[0]) for contour in contours]
 
     lines = cv2.HoughLines(edges,1,10*np.pi/180,250)
-    circles = cv2.HoughCircles(gray, cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
     if (lines is not None):
         lines = lines[0]
     points = getEndPointsOfLines(lines)
 
     # draw contours
-    cv2.drawContours(frame, contours, -1, (0,255,0), 2)
+    #cv2.drawContours(frame, contours, -1, (0,255,0), 2)
 
     # draw lines
-    for i in points:
-        cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),1)
+    #for i in points:
+    #    cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),1)
 
     intersectionPoints = getIntersectionPoints(points)
 
     # draw intersectionPoints
     #print("Number of intersections: ", len(intersectionPoints))
+
+
     for i in intersectionPoints:
         cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
         
     #draw detected circles
+    circles = cv2.HoughCircles(gray, cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
     if (circles is not None):
         circles = circles[0]
         #print("Number of circles: ", len(circles))
@@ -230,8 +224,6 @@ while True:
             cv2.circle(frame,(i[0],i[1]),i[2],(0,255,0),2)
             # draw the center of the circle
             cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
-        
-    cv2.imshow('Video',frame)
 
     if(len(intersectionPoints) == 4):
         if(circles is not None):
@@ -244,6 +236,44 @@ while True:
                 print(tempGameState[1])
                 print(tempGameState[2])
                 print("-------------")
+                
+                
+                point1 = intersectionPoints[0]
+                point2 = intersectionPoints[1]
+                point3 = intersectionPoints[2]
+                point4 = intersectionPoints[3]
+                
+                max_x = max([point1[0], point2[0],point3[0], point4[0]])
+                min_x = min([point1[0], point2[0],point3[0], point4[0]])
+                
+                max_y = max([point1[1], point2[1],point3[1], point4[1]])
+                min_y = min([point1[1], point2[1],point3[1], point4[1]])
+                
+                point1 = [min_x, max_y]
+                point2 = [max_x, max_y]
+                point3 = [min_x, min_y]
+                point4 = [max_x, min_y]
+                
+                cv2.line(frame, (point1[0], point1[1]), (point2[0],point2[1]), (0,255,0), 2)
+                cv2.line(frame, (point1[0], point1[1]), (point3[0],point3[1]), (0,255,0), 2)
+                cv2.line(frame, (point3[0], point3[1]), (point4[0],point4[1]), (0,255,0), 2)
+                cv2.line(frame, (point2[0], point2[1]), (point4[0],point4[1]), (0,255,0), 2)
+                
+                cv2.line(frame, (point1[0], point1[1]), (point1[0],point1[1]+(point1[1]-point3[1])), (0,255,0), 2)
+                cv2.line(frame, (point1[0], point1[1]), (point1[0]-(point2[0]-point1[0]),point1[1]), (0,255,0), 2)
+                
+                cv2.line(frame, (point2[0], point2[1]), (point2[0],point2[1]+(point2[1]-point4[1])), (0,255,0), 2)
+                cv2.line(frame, (point2[0], point2[1]), (point2[0]+(point2[0]-point1[0]),point2[1]), (0,255,0), 2)
+                
+                cv2.line(frame, (point3[0], point3[1]), (point3[0],point3[1]-(point1[1]-point3[1])), (0,255,0), 2)
+                cv2.line(frame, (point3[0], point3[1]), (point3[0]-(point4[0]-point3[0]),point3[1]), (0,255,0), 2)
+                
+                cv2.line(frame, (point4[0], point4[1]), (point4[0],point4[1]-(point2[1]-point4[1])), (0,255,0), 2)
+                cv2.line(frame, (point4[0], point4[1]), (point4[0]+(point4[0]-point3[0]),point4[1]), (0,255,0), 2)
+
+
+                cv2.imshow('Video',frame)
+                
                 while True:
                     if cv2.waitKey(1) & 0xFF == 32: #'space' accept
                         newGameState = aiMakeDecision(tempGameState)
@@ -257,7 +287,9 @@ while True:
                         break
                     if cv2.waitKey(1) & 0xFF == 114: #'r' reject
                         break
-    
+
+    cv2.imshow('Video',frame)
+
     if cv2.waitKey(1) & 0xFF == 113: #'q' quit
         break
 
