@@ -264,6 +264,34 @@ def drawCurrentSituation(intersectionPoints, gameState):
         cv2.line(frame, (point4[0] + 20, point4[1] - 20), (point4[0] + (point4[0] - point3[0]) - 20, point4[1] + (point3[1] - point1[1]) + 20), (0,255,0), 2)
         cv2.line(frame, (point4[0] + 20, point4[1] - (point1[1] - point3[1]) + 20), (point4[0] + (point4[0] - point3[0]) - 20, point4[1] - 20), (0,255,0), 2)
 
+def checkWinner(gameState):
+    winner = -1
+    if(gameState[0][0] == gameState[0][1] == gameState[0][2]):
+        winner = gameState[0][0]
+    if(gameState[1][0] == gameState[1][1] == gameState[1][2]):
+        winnder = gameState[1][0]
+    if(gameState[2][0] == gameState[2][1] == gameState[2][2]):
+        winnder = gameState[2][0]
+
+    if(gameState[0][0] == gameState[1][0] == gameState[2][0]):
+        winner = gameState[0][0]
+    if(gameState[0][1] == gameState[1][1] == gameState[2][1]):
+        winnder = gameState[0][1]
+    if(gameState[0][2] == gameState[1][2] == gameState[2][2]):
+        winnder = gameState[0][2]
+
+    if(gameState[0][0] == gameState[1][1] == gameState[2][2]):
+        winner = gameState[0][0]
+    if(gameState[2][0] == gameState[1][1] == gameState[0][2]):
+        winner = gameState[2][0]
+
+    if(winner == 1):
+        print("CONGRATULATION! YOU WIN!")
+    if(winner == 2):
+        print("COMPUTER WIN THIS GAME! TRY AGAIN!")
+
+    return winner
+
 video_capture = cv2.VideoCapture(0)
 gameState=[[0,0,0],[0,0,0],[0,0,0]]
 
@@ -320,6 +348,13 @@ while True:
                 cv2.imshow('Video',frame)
             
             if(state):
+                if(checkWinner(gameState) != -1):
+                    if cv2.waitKey(1) & 0xFF == 32: #'space' restart
+                        gameState=[[0,0,0],[0,0,0],[0,0,0]]
+                    if cv2.waitKey(1) & 0xFF == 113: #'q' quit
+                        break;
+            
+                
                 print("Player")
                 print("-------------")
                 print(tempGameState[0])
