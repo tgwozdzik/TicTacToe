@@ -1,6 +1,7 @@
 import cv2
 import cv2.cv as cv
 import numpy as np
+import random
 from skimage import data, io, filters, morphology, feature, measure
 from matplotlib import pyplot as plt
 from math import hypot
@@ -31,7 +32,7 @@ def getEndPointsOfLines(lines):
     points = []
     minDistance = 50
     if (lines is not None):
-        print("Number of lines: ", len(lines))
+        #print("Number of lines: ", len(lines))
         if (len(lines)>=4)and(len(lines)<30):
             for line in lines:
                 rho,theta = line[0],line[1]
@@ -84,12 +85,115 @@ def getCentroid(points):
     centroid = (sum(x) / len(points), sum(y) / len(points))
     return centroid
 
+def checkY(point1, point3, i):
+    position = -1
+    if(i[1] < point3[1]):
+        position=0
+        return position
+    if(point1[1] > i[1] > point3[1]):
+        position=1
+        return position
+    if(i[1] > point1[1]):
+        position=2
+        return position
+
+    return position
+
+def checkX(point1, point2, i):
+    position = -1
+    if(i[0] < point1[0]):
+        position=0
+        return position
+    if(point1[0] < i[0] < point2[0]):
+        position=1
+        return position
+    if(i[0] > point2[0]):
+        position=2
+        return position
+    
+    return position
+
+
+def checkGameState(intersectionPoints, circles, gameState):
+    game = [[0,0,0],[0,0,0],[0,0,0]]
+    
+    for i in [0,1,2]:
+        for j in [0,1,2]:
+            game[i][j] = gameState[i][j]
+
+    point1 = intersectionPoints[0]
+    point2 = intersectionPoints[1]
+    point3 = intersectionPoints[2]
+    point4 = intersectionPoints[3]
+    
+    if(point1[0] > point2[0]):
+        temp = point1
+        point1 = point2
+        point2 = temp
+    
+        temp = point3
+        point3 = point4
+        point4 = temp
+    
+    if(point1[1] < point3[1]):
+        temp = point1
+        point1 = point3
+        point3 = temp
+        
+        temp = point2
+        point2 = point4
+        point4 = temp
+    
+    #print(point1, point2, point3, point4)
+    
+    positionX=-1
+    positionY=-1
+    
+    for i in circles:
+        positionX = checkX(point1, point2, i)
+        positionY = checkY(point1, point3, i)
+        #print("position", positionX, positionY, i)
+        if(positionX != -1 and positionY != -1):
+            game[positionY][positionX] = 1;
+    return game
+
+def aiMakeDecision(gameState):
+    possibilities = [];
+    for x in [0,1,2]:
+        for y in [0,1,2]:
+            if gameState[x][y] == 0:
+                possibilities.append([x,y])
+    chosen = possibilities[random.randint(0,len(possibilities)-1)]
+    gameState[chosen[0]][chosen[1]] = 2
+
+    return gameState
+
+def checkState(gameState, tempGameState):
+    isCorrect = False
+    numberOfPlayerNewMoves = 0
+
+    for i in [0,1,2]:
+        for j in [0,1,2]:
+            if(gameState[i][j] != tempGameState[i][j]):
+                if(gameState[i][j] == 2):
+                    print("Incorrect move! Computer already placed here his 'X'. Please change your move!")
+                    return False
+                numberOfPlayerNewMoves += 1
+
+    if(numberOfPlayerNewMoves == 1):
+        isCorrect = True
+    else:
+        print("Incorrect move! You placed 2 or more 'O's. Please change your move!")
+
+    return isCorrect
+
 video_capture = cv2.VideoCapture(0)
+gameState=[[0,0,0],[0,0,0],[0,0,0]]
 
 while True:
     ret, frame = video_capture.read()
     gray, edges = getEdges(frame)
-    cv2.imshow('Edges', edges)
+    #cv2.imshow('Edges', edges)
 
     contours = getContours(edges,100)
 
@@ -107,19 +211,19 @@ while True:
 
     # draw lines
     for i in points:
-        cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),2)
+        cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),1)
 
     intersectionPoints = getIntersectionPoints(points)
 
     # draw intersectionPoints
-    print("Number of intersections: ", len(intersectionPoints))
+    #print("Number of intersections: ", len(intersectionPoints))
     for i in intersectionPoints:
         cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
         
     #draw detected circles
     if (circles is not None):
         circles = circles[0]
-        print("Number of circles: ", len(circles))
+        #print("Number of circles: ", len(circles))
         circles = np.uint16(np.around(circles))
         for i in circles:
             # draw the outer circle
@@ -128,8 +232,33 @@ while True:
             cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
         
     cv2.imshow('Video',frame)
+
+    if(len(intersectionPoints) == 4):
+        if(circles is not None):
+            tempGameState = checkGameState(intersectionPoints, circles, gameState)
             
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+            if(checkState(gameState, tempGameState)):
+                print("Player")
+                print("-------------")
+                print(tempGameState[0])
+                print(tempGameState[1])
+                print(tempGameState[2])
+                print("-------------")
+                while True:
+                    if cv2.waitKey(1) & 0xFF == 32: #'space' accept
+                        newGameState = aiMakeDecision(tempGameState)
+                        gameState = newGameState
+                        print("Computer")
+                        print("-------------")
+                        print(gameState[0])
+                        print(gameState[1])
+                        print(gameState[2])
+                        print("-------------")
+                        break
+                    if cv2.waitKey(1) & 0xFF == 114: #'r' reject
+                        break
+    
+    if cv2.waitKey(1) & 0xFF == 113: #'q' quit
         break
 
 video_capture.release()
