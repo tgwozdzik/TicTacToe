@@ -172,12 +172,97 @@ def checkState(gameState, tempGameState):
                     return False
                 numberOfPlayerNewMoves += 1
 
+    if(numberOfPlayerNewMoves == 0):
+        return -1
+
     if(numberOfPlayerNewMoves == 1):
         isCorrect = True
     else:
         print("Incorrect move! You placed 2 or more 'O's. Please change your move!")
 
     return isCorrect
+
+def drawCurrentSituation(intersectionPoints, gameState):
+    
+    point1 = intersectionPoints[0]
+    point2 = intersectionPoints[1]
+    point3 = intersectionPoints[2]
+    point4 = intersectionPoints[3]
+                
+    max_x = max([point1[0], point2[0],point3[0], point4[0]])
+    min_x = min([point1[0], point2[0],point3[0], point4[0]])
+                
+    max_y = max([point1[1], point2[1],point3[1], point4[1]])
+    min_y = min([point1[1], point2[1],point3[1], point4[1]])
+
+    point1 = [min_x, max_y]
+    point2 = [max_x, max_y]
+    point3 = [min_x, min_y]
+    point4 = [max_x, min_y]
+                
+    cv2.line(frame, (point1[0], point1[1]), (point2[0],point2[1]), (0,255,0), 2)
+    cv2.line(frame, (point1[0], point1[1]), (point3[0],point3[1]), (0,255,0), 2)
+    cv2.line(frame, (point3[0], point3[1]), (point4[0],point4[1]), (0,255,0), 2)
+    cv2.line(frame, (point2[0], point2[1]), (point4[0],point4[1]), (0,255,0), 2)
+                
+    cv2.line(frame, (point1[0], point1[1]), (point1[0],point1[1]+(point1[1]-point3[1])), (0,255,0), 2)
+    cv2.line(frame, (point1[0], point1[1]), (point1[0]-(point2[0]-point1[0]),point1[1]), (0,255,0), 2)
+                
+    cv2.line(frame, (point2[0], point2[1]), (point2[0],point2[1]+(point2[1]-point4[1])), (0,255,0), 2)
+    cv2.line(frame, (point2[0], point2[1]), (point2[0]+(point2[0]-point1[0]),point2[1]), (0,255,0), 2)
+                
+    cv2.line(frame, (point3[0], point3[1]), (point3[0],point3[1]-(point1[1]-point3[1])), (0,255,0), 2)
+    cv2.line(frame, (point3[0], point3[1]), (point3[0]-(point4[0]-point3[0]),point3[1]), (0,255,0), 2)
+                
+    cv2.line(frame, (point4[0], point4[1]), (point4[0],point4[1]-(point2[1]-point4[1])), (0,255,0), 2)
+    cv2.line(frame, (point4[0], point4[1]), (point4[0]+(point4[0]-point3[0]),point4[1]), (0,255,0), 2)
+
+
+
+    #bottom left
+    if(gameState[2][0] ==2):
+        cv2.line(frame, (point1[0] - 20, point1[1] + 20), (point1[0]-(point2[0]-point1[0]) + 20,point1[1]+(point1[1]-point3[1]) - 20), (0,255,0), 2)
+        cv2.line(frame, (point1[0] - (point2[0]-point1[0]) + 20, point1[1] + 20), (point1[0] - 20,point1[1]+(point1[1]-point3[1]) - 20), (0,255,0), 2)
+            
+    #bottom middle
+    if(gameState[2][1] ==2):
+        cv2.line(frame, (point1[0] + 20, point1[1] + 20), (point1[0] + (point2[0]-point1[0]) - 20, point1[1]+(point1[1]-point3[1]) - 20), (0,255,0), 2)
+        cv2.line(frame, (point1[0] + 20, point1[1] + (point1[1]-point3[1]) - 20), (point1[0] + (point2[0]-point1[0]) - 20, point1[1] + 20), (0,255,0), 2)
+                
+    #bottom right
+    if(gameState[2][2] ==2):
+        cv2.line(frame, (point2[0] + 20, point2[1] + 20), (point2[0]+(point2[0]-point1[0]) - 20,point1[1]+(point2[1]-point4[1]) - 20), (0,255,0), 2)
+        cv2.line(frame, (point2[0] + (point2[0]-point1[0]) - 20, point2[1] + 20), (point2[0] + 20,point2[1]+(point2[1]-point4[1]) - 20), (0,255,0), 2)
+                
+    #middle left
+    if(gameState[1][0] ==2):
+        cv2.line(frame, (point1[0] - 20, point1[1] - 20), (point1[0]-(point2[0]-point1[0]) + 20,point1[1]-(point1[1]-point3[1]) + 20), (0,255,0), 2)
+        cv2.line(frame, (point1[0] - (point2[0]-point1[0]) + 20, point1[1] - 20), (point1[0] - 20,point1[1]-(point1[1]-point3[1]) + 20), (0,255,0), 2)
+                
+    #middle
+    if(gameState[1][1] ==2):
+        cv2.line(frame, (point1[0] + 20, point1[1] - 20), (point1[0]+(point2[0]-point1[0]) - 20,point1[1]-(point1[1]-point3[1]) + 20), (0,255,0), 2)
+        cv2.line(frame, (point1[0] + (point2[0]-point1[0]) - 20, point1[1] - 20), (point1[0] + 20,point1[1]-(point1[1]-point3[1]) + 20), (0,255,0), 2)
+                
+    #middle right
+    if(gameState[1][2] ==2):
+        cv2.line(frame, (point2[0] + 20, point2[1] - (point2[1] - point4[1]) + 20), (point2[0] + (point2[0]-point1[0]) - 20,point1[1] - 20), (0,255,0), 2)
+        cv2.line(frame, (point2[0] + 20, point2[1] - 20), (point2[0] + (point2[0] - point1[0]) - 20, point2[1] - (point2[1] - point4[1]) + 20), (0,255,0), 2)
+                
+    #top left
+    if(gameState[0][0] ==2):
+        cv2.line(frame, (point3[0] - 20, point3[1] - 20), (point3[0]-(point4[0]-point3[0]) + 20,point3[1]-(point1[1]-point3[1]) + 20), (0,255,0), 2)
+        cv2.line(frame, (point3[0] - (point4[0]-point3[0]) + 20, point3[1] - 20), (point3[0] - (point4[1]-point3[1]) - 20, point3[1]-(point1[1]-point3[1]) + 20), (0,255,0), 2)
+                
+    #top middle
+    if(gameState[0][1] ==2):
+        cv2.line(frame, (point3[0] + 20, point3[1] - 20), (point3[0] + (point4[0] - point3[0]) - 20, point3[1] + (point3[1] - point1[1]) + 20), (0,255,0), 2)
+        cv2.line(frame, (point3[0] + 20, point3[1] - (point1[1] - point3[1]) + 20), (point3[0] + (point4[0] - point3[0]) - 20, point3[1] - 20), (0,255,0), 2)
+                
+    #top right
+    if(gameState[0][2] ==2):
+        cv2.line(frame, (point4[0] + 20, point4[1] - 20), (point4[0] + (point4[0] - point3[0]) - 20, point4[1] + (point3[1] - point1[1]) + 20), (0,255,0), 2)
+        cv2.line(frame, (point4[0] + 20, point4[1] - (point1[1] - point3[1]) + 20), (point4[0] + (point4[0] - point3[0]) - 20, point4[1] - 20), (0,255,0), 2)
 
 video_capture = cv2.VideoCapture(0)
 gameState=[[0,0,0],[0,0,0],[0,0,0]]
@@ -228,8 +313,13 @@ while True:
     if(len(intersectionPoints) == 4):
         if(circles is not None):
             tempGameState = checkGameState(intersectionPoints, circles, gameState)
+            state = checkState(gameState, tempGameState)
+            if(state == -1):
+                state = False
+                drawCurrentSituation(intersectionPoints, gameState)
+                cv2.imshow('Video',frame)
             
-            if(checkState(gameState, tempGameState)):
+            if(state):
                 print("Player")
                 print("-------------")
                 print(tempGameState[0])
@@ -237,41 +327,7 @@ while True:
                 print(tempGameState[2])
                 print("-------------")
                 
-                
-                point1 = intersectionPoints[0]
-                point2 = intersectionPoints[1]
-                point3 = intersectionPoints[2]
-                point4 = intersectionPoints[3]
-                
-                max_x = max([point1[0], point2[0],point3[0], point4[0]])
-                min_x = min([point1[0], point2[0],point3[0], point4[0]])
-                
-                max_y = max([point1[1], point2[1],point3[1], point4[1]])
-                min_y = min([point1[1], point2[1],point3[1], point4[1]])
-                
-                point1 = [min_x, max_y]
-                point2 = [max_x, max_y]
-                point3 = [min_x, min_y]
-                point4 = [max_x, min_y]
-                
-                cv2.line(frame, (point1[0], point1[1]), (point2[0],point2[1]), (0,255,0), 2)
-                cv2.line(frame, (point1[0], point1[1]), (point3[0],point3[1]), (0,255,0), 2)
-                cv2.line(frame, (point3[0], point3[1]), (point4[0],point4[1]), (0,255,0), 2)
-                cv2.line(frame, (point2[0], point2[1]), (point4[0],point4[1]), (0,255,0), 2)
-                
-                cv2.line(frame, (point1[0], point1[1]), (point1[0],point1[1]+(point1[1]-point3[1])), (0,255,0), 2)
-                cv2.line(frame, (point1[0], point1[1]), (point1[0]-(point2[0]-point1[0]),point1[1]), (0,255,0), 2)
-                
-                cv2.line(frame, (point2[0], point2[1]), (point2[0],point2[1]+(point2[1]-point4[1])), (0,255,0), 2)
-                cv2.line(frame, (point2[0], point2[1]), (point2[0]+(point2[0]-point1[0]),point2[1]), (0,255,0), 2)
-                
-                cv2.line(frame, (point3[0], point3[1]), (point3[0],point3[1]-(point1[1]-point3[1])), (0,255,0), 2)
-                cv2.line(frame, (point3[0], point3[1]), (point3[0]-(point4[0]-point3[0]),point3[1]), (0,255,0), 2)
-                
-                cv2.line(frame, (point4[0], point4[1]), (point4[0],point4[1]-(point2[1]-point4[1])), (0,255,0), 2)
-                cv2.line(frame, (point4[0], point4[1]), (point4[0]+(point4[0]-point3[0]),point4[1]), (0,255,0), 2)
-
-
+                drawCurrentSituation(intersectionPoints, gameState)
                 cv2.imshow('Video',frame)
                 
                 while True:
