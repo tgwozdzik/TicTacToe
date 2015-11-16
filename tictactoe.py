@@ -113,14 +113,7 @@ def checkX(point1, point2, i):
     
     return position
 
-
-def checkGameState(intersectionPoints, circles, gameState):
-    game = [[0,0,0],[0,0,0],[0,0,0]]
-    
-    for i in [0,1,2]:
-        for j in [0,1,2]:
-            game[i][j] = gameState[i][j]
-
+def computePoints(intersectionPoints):
     point1 = intersectionPoints[0]
     point2 = intersectionPoints[1]
     point3 = intersectionPoints[2]
@@ -128,18 +121,29 @@ def checkGameState(intersectionPoints, circles, gameState):
     
     max_x = max([point1[0], point2[0],point3[0], point4[0]])
     min_x = min([point1[0], point2[0],point3[0], point4[0]])
-        
+    
     max_y = max([point1[1], point2[1],point3[1], point4[1]])
     min_y = min([point1[1], point2[1],point3[1], point4[1]])
-                
+    
     point1 = [min_x, max_y]
     point2 = [max_x, max_y]
     point3 = [min_x, min_y]
     point4 = [max_x, min_y]
-    #print(point1, point2, point3, point4)
+
+    return point1, point2, point3, point4
+
+
+def checkGameState(intersectionPoints, circles, gameState):
+    game = [[0,0,0],[0,0,0],[0,0,0]]
     
-    positionX=-1
-    positionY=-1
+    for i in [0,1,2]:
+        for j in [0,1,2]:
+            game[i][j] = gameState[i][j]
+                
+    point1, point2, point3, point4 = computePoints(intersectionPoints)
+    
+    positionX = -1
+    positionY = -1
     
     for i in circles:
         positionX = checkX(point1, point2, i)
@@ -160,7 +164,7 @@ def aiMakeDecision(gameState):
 
     return gameState
 
-def checkState(gameState, tempGameState):
+def checkState(gameState, tempGameState, playerCircles, circles):
     isCorrect = False
     numberOfPlayerNewMoves = 0
 
@@ -176,7 +180,8 @@ def checkState(gameState, tempGameState):
         return -1
 
     if(numberOfPlayerNewMoves == 1):
-        isCorrect = True
+        if(playerCircles == circles - 1):
+            isCorrect = True
     else:
         print("Incorrect move! You placed 2 or more 'O's. Please change your move!")
 
@@ -184,22 +189,8 @@ def checkState(gameState, tempGameState):
 
 def drawCurrentSituation(intersectionPoints, gameState):
     
-    point1 = intersectionPoints[0]
-    point2 = intersectionPoints[1]
-    point3 = intersectionPoints[2]
-    point4 = intersectionPoints[3]
-                
-    max_x = max([point1[0], point2[0],point3[0], point4[0]])
-    min_x = min([point1[0], point2[0],point3[0], point4[0]])
-                
-    max_y = max([point1[1], point2[1],point3[1], point4[1]])
-    min_y = min([point1[1], point2[1],point3[1], point4[1]])
-
-    point1 = [min_x, max_y]
-    point2 = [max_x, max_y]
-    point3 = [min_x, min_y]
-    point4 = [max_x, min_y]
-                
+    point1, point2, point3, point4 = computePoints(intersectionPoints)
+    
     cv2.line(frame, (point1[0], point1[1]), (point2[0],point2[1]), (0,255,0), 2)
     cv2.line(frame, (point1[0], point1[1]), (point3[0],point3[1]), (0,255,0), 2)
     cv2.line(frame, (point3[0], point3[1]), (point4[0],point4[1]), (0,255,0), 2)
@@ -217,11 +208,9 @@ def drawCurrentSituation(intersectionPoints, gameState):
     cv2.line(frame, (point4[0], point4[1]), (point4[0],point4[1]-(point2[1]-point4[1])), (0,255,0), 2)
     cv2.line(frame, (point4[0], point4[1]), (point4[0]+(point4[0]-point3[0]),point4[1]), (0,255,0), 2)
 
-
-
     #bottom left
     if(gameState[2][0] ==2):
-        cv2.line(frame, (point1[0] - 20, point1[1] + 20), (point1[0]-(point2[0]-point1[0]) + 20,point1[1]+(point1[1]-point3[1]) - 20), (0,255,0), 2)
+        cv2.line(frame, (point1[0] - 20, point1[1] + 20), (point1[0] - (point2[0] - point1[0]) + 20, point1[1] + (point1[1] - point3[1]) - 20), (0,255,0), 2)
         cv2.line(frame, (point1[0] - (point2[0]-point1[0]) + 20, point1[1] + 20), (point1[0] - 20,point1[1]+(point1[1]-point3[1]) - 20), (0,255,0), 2)
             
     #bottom middle
@@ -264,7 +253,7 @@ def drawCurrentSituation(intersectionPoints, gameState):
         cv2.line(frame, (point4[0] + 20, point4[1] - 20), (point4[0] + (point4[0] - point3[0]) - 20, point4[1] + (point3[1] - point1[1]) + 20), (0,255,0), 2)
         cv2.line(frame, (point4[0] + 20, point4[1] - (point1[1] - point3[1]) + 20), (point4[0] + (point4[0] - point3[0]) - 20, point4[1] - 20), (0,255,0), 2)
 
-def checkWinner(gameState):
+def checkWinner(gameState, frame):
     winner = -1
     if(gameState[0][0] == gameState[0][1] == gameState[0][2]):
         winner = gameState[0][0]
@@ -276,29 +265,45 @@ def checkWinner(gameState):
     if(gameState[0][0] == gameState[1][0] == gameState[2][0]):
         winner = gameState[0][0]
     if(gameState[0][1] == gameState[1][1] == gameState[2][1]):
-        winnder = gameState[0][1]
+        winner = gameState[0][1]
     if(gameState[0][2] == gameState[1][2] == gameState[2][2]):
-        winnder = gameState[0][2]
+        winner = gameState[0][2]
 
     if(gameState[0][0] == gameState[1][1] == gameState[2][2]):
         winner = gameState[0][0]
     if(gameState[2][0] == gameState[1][1] == gameState[0][2]):
         winner = gameState[2][0]
 
+    if(winner == 0):
+        winner = -1
+
     if(winner == 1):
         print("CONGRATULATION! YOU WIN!")
+        cv2.putText(frame,"PLAYER WIN!", (100,500), cv2.FONT_HERSHEY_SIMPLEX, 5, 255)
+        cv2.imshow('Video',frame)
+
     if(winner == 2):
         print("COMPUTER WIN THIS GAME! TRY AGAIN!")
+        cv2.putText(frame,"COMPUTER WIN!", (100,500), cv2.FONT_HERSHEY_SIMPLEX, 5, 255)
+        cv2.imshow('Video',frame)
 
     return winner
 
+def consoleStatus(player, state):
+    print(player)
+    print("-------------")
+    print(state[0])
+    print(state[1])
+    print(state[2])
+    print("-------------")
+
 video_capture = cv2.VideoCapture(0)
 gameState=[[0,0,0],[0,0,0],[0,0,0]]
+playerCircles = 0
 
 while True:
     ret, frame = video_capture.read()
     gray, edges = getEdges(frame)
-    #cv2.imshow('Edges', edges)
 
     contours = getContours(edges,100)
 
@@ -308,30 +313,16 @@ while True:
     lines = cv2.HoughLines(edges,1,10*np.pi/180,250)
     if (lines is not None):
         lines = lines[0]
+
     points = getEndPointsOfLines(lines)
-
-    # draw contours
-    #cv2.drawContours(frame, contours, -1, (0,255,0), 2)
-
-    # draw lines
-    #for i in points:
-    #    cv2.line(frame,(i[0], i[1]),(i[2],i[3]),(0,255,0),1)
-
     intersectionPoints = getIntersectionPoints(points)
-
-    # draw intersectionPoints
-    #print("Number of intersections: ", len(intersectionPoints))
-
 
     for i in intersectionPoints:
         cv2.circle(frame,(int(i[0]),int(i[1])), 5, (0,0,255), -1)
-        
-    #draw detected circles
+
     circles = cv2.HoughCircles(gray, cv.CV_HOUGH_GRADIENT, 1, 10, np.array([]), 100, 30, 1, 30)
     if (circles is not None):
-        circles = circles[0]
-        #print("Number of circles: ", len(circles))
-        circles = np.uint16(np.around(circles))
+        circles = np.uint16(np.around(circles[0]))
         for i in circles:
             # draw the outer circle
             cv2.circle(frame,(i[0],i[1]),i[2],(0,255,0),2)
@@ -341,43 +332,37 @@ while True:
     if(len(intersectionPoints) == 4):
         if(circles is not None):
             tempGameState = checkGameState(intersectionPoints, circles, gameState)
-            state = checkState(gameState, tempGameState)
-            if(state == -1):
-                state = False
+            
+            playerMoves = checkState(gameState, tempGameState, playerCircles, len(circles))
+            if(playerMoves == -1):
+                playerMoves = False
                 drawCurrentSituation(intersectionPoints, gameState)
                 cv2.imshow('Video',frame)
             
-            if(state):
-                if(checkWinner(gameState) != -1):
-                    if cv2.waitKey(1) & 0xFF == 32: #'space' restart
-                        gameState=[[0,0,0],[0,0,0],[0,0,0]]
-                    if cv2.waitKey(1) & 0xFF == 113: #'q' quit
-                        break;
-            
+            if(playerMoves):
+                if(checkWinner(tempGameState, frame) != -1):
+                    while(True):
+                        if cv2.waitKey(1) & 0xFF == 32: #'space' restart
+                            gameState = [[0,0,0],[0,0,0],[0,0,0]]
+                            playerCircles = 0
+                            break
+                        if cv2.waitKey(1) & 0xFF == 113: #'q' quit
+                            break
+                else:
+                    consoleStatus("Player", tempGameState)
                 
-                print("Player")
-                print("-------------")
-                print(tempGameState[0])
-                print(tempGameState[1])
-                print(tempGameState[2])
-                print("-------------")
+                    drawCurrentSituation(intersectionPoints, gameState)
+                    cv2.imshow('Video',frame)
                 
-                drawCurrentSituation(intersectionPoints, gameState)
-                cv2.imshow('Video',frame)
-                
-                while True:
-                    if cv2.waitKey(1) & 0xFF == 32: #'space' accept
-                        newGameState = aiMakeDecision(tempGameState)
-                        gameState = newGameState
-                        print("Computer")
-                        print("-------------")
-                        print(gameState[0])
-                        print(gameState[1])
-                        print(gameState[2])
-                        print("-------------")
-                        break
-                    if cv2.waitKey(1) & 0xFF == 114: #'r' reject
-                        break
+                    while True:
+                        if cv2.waitKey(1) & 0xFF == 32: #'space' accept
+                            playerCircles += 1
+                            newGameState = aiMakeDecision(tempGameState)
+                            gameState = newGameState
+                            consoleStatus("Computer", gameState)
+                            break
+                        if cv2.waitKey(1) & 0xFF == 114: #'r' reject
+                            break
 
     cv2.imshow('Video',frame)
 
