@@ -405,7 +405,7 @@ def changeGameState(intersectionPoints, frame, circles, gameState, playerCircles
 
 
 def main():
-    gameState=[[0,0,0],[1,1,1],[1,1,1]]
+    gameState=[[0,0,0],[0,0,0],[0,0,0]]
     playerCircles = 0
     video_capture = cv2.VideoCapture(0)
 
