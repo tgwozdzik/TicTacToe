@@ -315,13 +315,13 @@ def checkWinner(gameState, frame, intersectionPoints, playerCircles):
     if(winner == 1):
         print("CONGRATULATION! YOU WIN!")
         drawCurrentSituation(intersectionPoints, gameState, frame)
-        cv2.putText(frame,"PLAYER WIN!", (150,500), cv2.FONT_HERSHEY_SIMPLEX, 5, 255)
+        cv2.putText(frame,"PLAYER WIN!", (15,150), cv2.FONT_HERSHEY_SIMPLEX, 3, 100)
         cv2.imshow('Video',frame)
 
     if(winner == 2):
         print("COMPUTER WIN THIS GAME! TRY AGAIN!")
         drawCurrentSituation(intersectionPoints, gameState, frame)
-        cv2.putText(frame,"COMPUTER WIN!", (30,500), cv2.FONT_HERSHEY_SIMPLEX, 5, 255)
+        cv2.putText(frame,"COMPUTER WIN!", (30,150), cv2.FONT_HERSHEY_SIMPLEX, 3, 100)
         cv2.imshow('Video',frame)
 
     return winner
@@ -349,7 +349,7 @@ def detectContoursAndLines(edges, frame):
     #if (contours):
     #    centroids = [getCentroid(contour[0]) for contour in contours]
     
-    lines = cv2.HoughLines(edges,1,10*np.pi/180,250)
+    lines = cv2.HoughLines(edges,1,5*np.pi/180,250)
     if (lines is not None):
         lines = lines[0]
 
@@ -388,15 +388,15 @@ def changeGameState(intersectionPoints, frame, circles, gameState, playerCircles
             cv2.imshow('Video',frame)
         
             while(True):
-                if cv2.waitKey(1) & 0xFF == 32: #'space'
-                    playerCircles += 1
-                    newGameState = aiMakeDecision(actualGameState)
-                    gameState = newGameState
-                    consoleStatus("Computer", gameState)
-                    if(not isWinner(actualGameState, frame, intersectionPoints, playerCircles)):
-                        return False, newGameState, playerCircles
-                    else:
-                        return True, newGameState, playerCircles
+                #if cv2.waitKey(1) & 0xFF == 32: #'space'
+	    	playerCircles += 1
+	    	newGameState = aiMakeDecision(actualGameState)
+            	gameState = newGameState
+            	consoleStatus("Computer", gameState)
+            	if(not isWinner(actualGameState, frame, intersectionPoints, playerCircles)):
+                	return False, newGameState, playerCircles
+            	else:
+                	return True, newGameState, playerCircles
                 
                 if cv2.waitKey(1) & 0xFF == 114: #'r'
                     return False, gameState, playerCircles
