@@ -389,8 +389,8 @@ def changeGameState(intersectionPoints, frame, circles, gameState, playerCircles
         
             while(True):
                 #if cv2.waitKey(1) & 0xFF == 32: #'space'
-	    	playerCircles += 1
-	    	newGameState = aiMakeDecision(actualGameState)
+                playerCircles += 1
+                newGameState = aiMakeDecision(actualGameState)
             	gameState = newGameState
             	consoleStatus("Computer", gameState)
             	if(not isWinner(actualGameState, frame, intersectionPoints, playerCircles)):
